@@ -90,7 +90,7 @@ void add(int id, const std::string &description) {
   j["description"] = description;
   j["status"] = "todo";
 
-  std::ofstream file("tasks.json");
+  std::ofstream file("data/tasks.json");
   file << j.dump(4);
   file.close();
 }
