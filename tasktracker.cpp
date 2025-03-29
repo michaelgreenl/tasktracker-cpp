@@ -52,10 +52,26 @@ int main() {
     } else if (command == "add") {
       std::string description;
       std::getline(iss, description);
-      // Remove leading whitespace from the description, if any.
       description.erase(0, description.find_first_not_of(" \t"));
+
       add(nextId, description);
-      nextId++; // Increment task id after adding a task. 
+      nextId++;  
+    } else if (command == "update") {
+      int inid;
+      std::string description;
+      iss >> inid >> description;
+
+      update(inid, description);
+      
+      // update();
+    } else if (command == "delete") {
+      // delete();
+    } else if (command == "mark-in-progress") {
+      // markInProgress();
+    } else if (command == "mark-done") {
+      // markDone();
+    } else if (command == "list") {
+      // list();
     } else {
       std::cout << "Command not found" << std::endl;
     }
@@ -70,21 +86,22 @@ void add(int id, const std::string &description) {
 
 // Stub implementations for other functions
 void update(int id, const std::string &description) {
-    std::cout << "Updating task " << id << " with: " << description << std::endl;
+  // if (id > nextId) => err
+  std::cout << "Updating task " << id << " with: " << description << std::endl;
 }
 
 void deleteTask(int id) {
-    std::cout << "Deleting task " << id << std::endl;
+  std::cout << "Deleting task " << id << std::endl;
 }
 
 void markInProgress(int id) {
-    std::cout << "Marking task " << id << " as in-progress" << std::endl;
+  std::cout << "Marking task " << id << " as in-progress" << std::endl;
 }
 
 void markDone(int id) {
-    std::cout << "Marking task " << id << " as done" << std::endl;
+  std::cout << "Marking task " << id << " as done" << std::endl;
 }
 
 void list(const std::string &toOutput) {
-    std::cout << "Listing tasks with filter: " << toOutput << std::endl;
+  std::cout << "Listing tasks with filter: " << toOutput << std::endl;
 }
