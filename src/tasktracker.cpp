@@ -13,6 +13,8 @@ struct Task {
   std::string status;
 };
 
+void getTasks(std::vector<Task> tasks); 
+
 void add(int id, const std::string &description);
 
 void update(int id, const std::string &description);
@@ -82,17 +84,37 @@ int main() {
   return 0;
 }
 
+// Gets tasks and adds them to tasks vector
+void getTasks(std::vector<Task>& tasks) {
+  std::ifstream file("data/tasks.json");
+  
+}
+
 void add(int id, const std::string &description) {
   std::cout << "Adding task " << id << ": " << description << std::endl;
 
-  json j;
-  j["id"] = id;
-  j["description"] = description;
-  j["status"] = "todo";
+  std::ifstream in("data/tasks.json");
+  json tasks;
 
-  std::ofstream file("data/tasks.json");
-  file << j.dump(4);
-  file.close();
+  if (in.good()) {
+    in >> tasks;
+  } else {
+    tasks = json::array();
+  }
+  in.close();
+
+  json newTask;
+  newTask["id"] = id;
+  newTask["description"] = description;
+  newTask["status"] = "todo";
+
+  // TODO: Add createdAt & updatedAt properties, then get the current time here 
+  
+  tasks.push_back(newTask); 
+
+  std::ofstream out("data/tasks.json");
+  out << tasks.dump(4);
+  out.close();
 }
 
 // Stub implementations for other functions
