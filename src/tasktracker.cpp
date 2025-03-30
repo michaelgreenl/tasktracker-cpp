@@ -26,6 +26,7 @@ void markDone(int id);
 void list(const std::string &toOutput);
 
 int main() {
+  // FIXME: Are the variables tasks || nextId necessary? Maybe nextId but the tasks vector isn't necessary if tasks.json is accessed consistently.
   std::vector<Task> tasks;
   int nextId = 1;
   std::string input;
@@ -69,7 +70,9 @@ int main() {
 
       update(inid, description);
     } else if (command == "delete") {
-      // delete();
+      int inid;
+      iss >> inid;
+      deleteTask(inid);
     } else if (command == "mark-in-progress") {
       int inid;
       iss >> inid;
@@ -118,9 +121,7 @@ void add(int id, const std::string &description) {
   out.close();
 }
 
-// Stub implementations for other functions
 void update(int id, const std::string &description) {
-  // if (id > nextId) => err
   std::cout << "Updating task " << id << " with: " << description << std::endl;
 
   std::ifstream in("data/tasks.json");
@@ -129,7 +130,7 @@ void update(int id, const std::string &description) {
   if (in.good()) {
     in >> tasks;
   } else {
-    std::cerr << "Task list is empty, use the add command to add a task" << std::endl;
+    std::cout << "Task list is empty, use the add command to add a task" << std::endl;
     in.close();
     return;
   } 
@@ -154,6 +155,34 @@ void update(int id, const std::string &description) {
 
 void deleteTask(int id) {
   std::cout << "Deleting task " << id << std::endl;
+
+  std::ifstream in("data/tasks.json");
+  json tasks;
+
+  if (in.good()) {
+    in >> tasks;
+  } else {
+    std::cout << "Task list is empty, use the add command to add a task" << std::endl;
+    in.close();
+    return; 
+  }
+  in.close();
+
+  if (id > tasks.size() || id < 1) {
+    std::cout << "Task id does not exist" << std::endl;
+    return;
+  }
+
+  for (auto it = tasks.begin(); it != tasks.end(); ++it) {
+    if ((*it)["id"] == id) {
+      tasks.erase(it);
+      break;
+    }
+  }
+
+  std::ofstream out("data/tasks.json");
+  out << tasks.dump(4);
+  out.close();
 }
 
 void markInProgress(int id) {
