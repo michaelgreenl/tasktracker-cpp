@@ -63,15 +63,23 @@ int main() {
     } else if (command == "update") {
       int inid;
       std::string description;
-      iss >> inid >> description;
+      iss >> inid;
+      std::getline(iss, description);
+      description.erase(0, description.find_first_not_of(" \t")); 
 
       update(inid, description);
     } else if (command == "delete") {
       // delete();
     } else if (command == "mark-in-progress") {
-      // markInProgress();
+      int inid;
+      iss >> inid;
+      
+      markInProgress(inid);
     } else if (command == "mark-done") {
-      // markDone();
+      int inid;
+      iss >> inid;
+
+      markDone(inid);
     } else if (command == "list") {
       // list();
     } else {
@@ -121,18 +129,21 @@ void update(int id, const std::string &description) {
   if (in.good()) {
     in >> tasks;
   } else {
-    tasks = json::array();
+    std::cerr << "Task list is empty, use the add command to add a task" << std::endl;
+    in.close();
+    return;
   } 
   in.close();
 
-  if (id > tasks.size()) {
-    std::cerr << "Task id does not exist" << std::endl;
+  if (id > tasks.size() || id < 1) {
+    std::cout << "Task id does not exist" << std::endl;
     return;
   }
   
   for (auto& task : tasks) {
     if (task["id"] == id) {
       task["description"] = description;
+      // update updatedAt
     }
   }
 
@@ -147,10 +158,62 @@ void deleteTask(int id) {
 
 void markInProgress(int id) {
   std::cout << "Marking task " << id << " as in-progress" << std::endl;
+
+  std::ifstream in("data/tasks.json");
+  json tasks;
+
+  if (in.good()) {
+    in >> tasks;
+  } else {
+    std::cout << "Task list is empty, use the add command to add a task" << std::endl;
+    in.close();
+    return;
+  }
+  in.close();
+
+  if (id > tasks.size() || id < 1) {
+    std::cout << "Task id does not exist" << std::endl;
+    return;
+  }
+
+  for (auto& task : tasks) { 
+    if (task["id"] == id) {
+      task["status"] = "in-progress";
+      // update updatedAt 
+    }
+  }
+
+  std::ofstream out("data/tasks.json");
+  out << tasks.dump(4);
+  out.close();
 }
 
 void markDone(int id) {
   std::cout << "Marking task " << id << " as done" << std::endl;
+
+  std::ifstream in("data/tasks.json");
+  json tasks;
+
+  if (in.good()) {
+    in >> tasks;
+  } else {
+    std::cout << "Task list is empty, use the add command to add a task" << std::endl;
+    in.close();
+    return;
+  }
+  in.close();
+
+  if (id > tasks.size() || id < 1) {
+    std::cout << "Task id does not exist" << std::endl;
+    return;
+  }
+
+  for (auto& task : tasks) { 
+    if (task["id"] == id) {
+      task["status"] = "done";
+      // update updatedAt
+    }
+  }
 }
 
 void list(const std::string &toOutput) {
