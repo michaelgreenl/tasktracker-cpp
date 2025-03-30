@@ -13,8 +13,6 @@ struct Task {
   std::string status;
 };
 
-void getTasks(std::vector<Task> tasks); 
-
 void add(int id, const std::string &description);
 
 void update(int id, const std::string &description);
@@ -84,11 +82,6 @@ int main() {
   return 0;
 }
 
-// Gets tasks and adds them to tasks vector
-void getTasks(std::vector<Task>& tasks) {
-  std::ifstream file("data/tasks.json");
-  
-}
 
 void add(int id, const std::string &description) {
   std::cout << "Adding task " << id << ": " << description << std::endl;
@@ -121,6 +114,31 @@ void add(int id, const std::string &description) {
 void update(int id, const std::string &description) {
   // if (id > nextId) => err
   std::cout << "Updating task " << id << " with: " << description << std::endl;
+
+  std::ifstream in("data/tasks.json");
+  json tasks;
+
+  if (in.good()) {
+    in >> tasks;
+  } else {
+    tasks = json::array();
+  } 
+  in.close();
+
+  if (id > tasks.size()) {
+    std::cerr << "Task id does not exist" << std::endl;
+    return;
+  }
+  
+  for (auto& task : tasks) {
+    if (task["id"] == id) {
+      task["description"] = description;
+    }
+  }
+
+  std::ofstream out("data/tasks.json");
+  out << tasks.dump(4);
+  out.close();
 }
 
 void deleteTask(int id) {
