@@ -1,9 +1,10 @@
 #include <iostream>
 #include <sstream>
-#include <vector>
-#include <algorithm>
 #include <fstream>
 #include <nlohmann/json.hpp>
+#include <chrono>
+#include <ctime>
+#include <iomanip>
 
 using json = nlohmann::json;
 
@@ -11,7 +12,11 @@ struct Task {
   int id;
   std::string description;
   std::string status;
+  std::string createdAt;
+  std::string updatedAt;
 };
+
+std::string timeNowToString();
 
 void add(int id, const std::string &description);
 
@@ -27,6 +32,7 @@ void list(const std::string &toOutput);
 
 int main() {
   // FIXME: Are the variables tasks || nextId necessary? Maybe nextId but the tasks vector isn't necessary if tasks.json is accessed consistently.
+  // FIXME: Ensure functionality works accross separate sessions.
   std::vector<Task> tasks;
   int nextId = 1;
   std::string input;
@@ -93,10 +99,20 @@ int main() {
   return 0;
 }
 
+std::string timeNowToString() {
+  auto now = std::chrono::system_clock::now();
+  std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+
+  std::ostringstream oss;
+  oss << std::put_time(std::localtime(&now_c), "%F %T");
+
+  return oss.str();
+}
 
 void add(int id, const std::string &description) {
   std::cout << "Adding task " << id << ": " << description << std::endl;
-
+  
+  // FIXME: This will create the file but not the directory
   std::ifstream in("data/tasks.json");
   json tasks;
 
@@ -111,9 +127,9 @@ void add(int id, const std::string &description) {
   newTask["id"] = id;
   newTask["description"] = description;
   newTask["status"] = "todo";
+  newTask["createdAt"] = timeNowToString();
+  newTask["updatedAt"] = timeNowToString();
 
-  // TODO: Add createdAt & updatedAt properties, then get the current time here 
-  
   tasks.push_back(newTask); 
 
   std::ofstream out("data/tasks.json");
@@ -126,6 +142,9 @@ void update(int id, const std::string &description) {
 
   std::ifstream in("data/tasks.json");
   json tasks;
+
+  // FIXME: This function should work accross multiple sessions
+  // Accessing the tasks should enable finding the task by id instead of (possibly) depending on array indicies. 
 
   if (in.good()) {
     in >> tasks;
@@ -140,11 +159,13 @@ void update(int id, const std::string &description) {
     std::cout << "Task id does not exist" << std::endl;
     return;
   }
+
+  std::string timeNow = timeNowToString();
   
   for (auto& task : tasks) {
     if (task["id"] == id) {
       task["description"] = description;
-      // update updatedAt
+      task["updatedAt"] = timeNow;
     }
   }
 
@@ -205,10 +226,12 @@ void markInProgress(int id) {
     return;
   }
 
+  std::string timeNow = timeNowToString();
+
   for (auto& task : tasks) { 
     if (task["id"] == id) {
       task["status"] = "in-progress";
-      // update updatedAt 
+      task["updatedAt"] = timeNow;
     }
   }
 
@@ -237,10 +260,12 @@ void markDone(int id) {
     return;
   }
 
+  std::string timeNow = timeNowToString();
+
   for (auto& task : tasks) { 
     if (task["id"] == id) {
       task["status"] = "done";
-      // update updatedAt
+      task["updatedAt"] = timeNow;
     }
   }
 }
