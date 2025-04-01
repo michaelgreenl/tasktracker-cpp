@@ -112,7 +112,6 @@ std::string timeNowToString() {
 void add(int id, const std::string &description) {
   std::cout << "Adding task " << id << ": " << description << std::endl;
   
-  // FIXME: This will create the file but not the directory
   std::ifstream in("data/tasks.json");
   json tasks;
 
@@ -143,9 +142,6 @@ void update(int id, const std::string &description) {
   std::ifstream in("data/tasks.json");
   json tasks;
 
-  // FIXME: This function should work accross multiple sessions
-  // Accessing the tasks should enable finding the task by id instead of (possibly) depending on array indicies. 
-
   if (in.good()) {
     in >> tasks;
   } else {
@@ -154,11 +150,6 @@ void update(int id, const std::string &description) {
     return;
   } 
   in.close();
-
-  if (id > tasks.size() || id < 1) {
-    std::cout << "Task id does not exist" << std::endl;
-    return;
-  }
 
   std::string timeNow = timeNowToString();
   
@@ -189,11 +180,6 @@ void deleteTask(int id) {
   }
   in.close();
 
-  if (id > tasks.size() || id < 1) {
-    std::cout << "Task id does not exist" << std::endl;
-    return;
-  }
-
   for (auto it = tasks.begin(); it != tasks.end(); ++it) {
     if ((*it)["id"] == id) {
       tasks.erase(it);
@@ -220,11 +206,6 @@ void markInProgress(int id) {
     return;
   }
   in.close();
-
-  if (id > tasks.size() || id < 1) {
-    std::cout << "Task id does not exist" << std::endl;
-    return;
-  }
 
   std::string timeNow = timeNowToString();
 
@@ -254,11 +235,6 @@ void markDone(int id) {
     return;
   }
   in.close();
-
-  if (id > tasks.size() || id < 1) {
-    std::cout << "Task id does not exist" << std::endl;
-    return;
-  }
 
   std::string timeNow = timeNowToString();
 
