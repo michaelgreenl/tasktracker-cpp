@@ -31,23 +31,20 @@ void markDone(int id);
 void list(const std::string &toOutput);
 
 int main() {
+  int nextId;
   std::ifstream in("data/tasks.json");
-  json tasks;
 
-  if (!in.is_open()) {
-    throw std::runtime_error("Failed to open tasks.json");
+  if (in.good()) {
+    json tasks;
+    in >> tasks;
+
+    const json& last = tasks.back();
+    int prevId = last["id"];
+    nextId = prevId + 1;
+  } else {
+    nextId = 1;
   }
-
-  in >> tasks;
   in.close();
-
-  if (!tasks.is_array() || tasks.empty()) {
-    throw std::runtime_error("tasks.json does not contain valid array");
-  }
-  
-  const json& last = tasks.back();
-  int prevId = last["id"];
-  int nextId = prevId + 1;
 
   std::string input;
 
