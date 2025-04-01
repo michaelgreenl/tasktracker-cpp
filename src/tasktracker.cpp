@@ -31,10 +31,24 @@ void markDone(int id);
 void list(const std::string &toOutput);
 
 int main() {
-  // FIXME: Are the variables tasks || nextId necessary? Maybe nextId but the tasks vector isn't necessary if tasks.json is accessed consistently.
-  // FIXME: Ensure functionality works accross separate sessions.
-  std::vector<Task> tasks;
-  int nextId = 1;
+  std::ifstream in("data/tasks.json");
+  json tasks;
+
+  if (!in.is_open()) {
+    throw std::runtime_error("Failed to open tasks.json");
+  }
+
+  in >> tasks;
+  in.close();
+
+  if (!tasks.is_array() || tasks.empty()) {
+    throw std::runtime_error("tasks.json does not contain valid array");
+  }
+  
+  const json& last = tasks.back();
+  int prevId = last["id"];
+  int nextId = prevId + 1;
+
   std::string input;
 
   std::cout << "Task CLI - type 'help' for available commands" << std::endl;
