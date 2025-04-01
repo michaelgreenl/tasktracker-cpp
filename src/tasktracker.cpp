@@ -28,7 +28,7 @@ void markInProgress(int id);
 
 void markDone(int id);
 
-void list(const std::string &toOutput);
+void list(const std::string &status);
 
 int main() {
   int nextId;
@@ -101,7 +101,10 @@ int main() {
 
       markDone(inid);
     } else if (command == "list") {
-      // list();
+      std::string status;
+      iss >> status;
+
+      list(status); 
     } else {
       std::cout << "Command not found" << std::endl;
     }
@@ -257,6 +260,59 @@ void markDone(int id) {
   }
 }
 
-void list(const std::string &toOutput) {
-  std::cout << "Listing tasks with filter: " << toOutput << std::endl;
+void list(const std::string &status) {
+  std::cout << "Listing tasks with filter: " << status << std::endl;
+
+  std::ifstream in("data/tasks.json");
+  json tasks;
+
+  if (in.good()) {
+    in >> tasks;
+  } else {
+    std::cout << "Task list is empty, use the add command to add a task" << std::endl;
+    in.close();
+    return;
+  }
+  in.close();
+
+  if (status == "") {
+    for (auto& task : tasks) { 
+      std::cout << "ID: " << task["id"] << std::endl;
+      std::cout << "Description: " << task["description"] << std::endl;
+      std::cout << "Status: " << task["status"] << std::endl; 
+      std::cout << "Created At: " << task["createdAt"] << std::endl; 
+      std::cout << "Updated At: " << task["updatedAt"] << std::endl; 
+    } 
+  } else if (status == "todo") {
+    for (auto& task : tasks) {
+      if (task["status"] == "todo") {
+        std::cout << "ID: " << task["id"] << std::endl;
+        std::cout << "Description: " << task["description"] << std::endl;
+        std::cout << "Status: " << task["status"] << std::endl; 
+        std::cout << "Created At: " << task["createdAt"] << std::endl; 
+        std::cout << "Updated At: " << task["updatedAt"] << std::endl; 
+      }
+    }
+  } else if (status == "in-progress") {
+    for (auto& task : tasks) {
+      if (task["status"] == "in-progress") {
+        std::cout << "ID: " << task["id"] << std::endl;
+        std::cout << "Description: " << task["description"] << std::endl;
+        std::cout << "Status: " << task["status"] << std::endl; 
+        std::cout << "Created At: " << task["createdAt"] << std::endl; 
+        std::cout << "Updated At: " << task["updatedAt"] << std::endl; 
+      }
+    }
+  } else if (status == "done") {
+    for (auto& task : tasks) {
+      if (task["status"] == "done") {
+        std::cout << "ID: " << task["id"] << std::endl;
+        std::cout << "Description: " << task["description"] << std::endl;
+        std::cout << "Status: " << task["status"] << std::endl; 
+        std::cout << "Created At: " << task["createdAt"] << std::endl; 
+        std::cout << "Updated At: " << task["updatedAt"] << std::endl; 
+      }
+    }
+  }
+
 }
