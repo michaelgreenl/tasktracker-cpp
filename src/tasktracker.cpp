@@ -261,7 +261,11 @@ void markDone(int id) {
 }
 
 void list(const std::string &status) {
-  std::cout << "Listing tasks with filter: " << status << std::endl;
+  if (!status.empty()) {
+    std::cout << "Listing tasks with filter: " << status << std::endl;
+  } else {
+    std::cout << "Listing all tasks" << std::endl;
+  }
 
   std::ifstream in("data/tasks.json");
   json tasks;
