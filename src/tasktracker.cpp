@@ -5,6 +5,9 @@
 #include <chrono>
 #include <ctime>
 #include <iomanip>
+#include <vector>
+#include <unistd.h>
+#include <limits.h>
 
 using json = nlohmann::json;
 
@@ -17,99 +20,42 @@ struct Task {
 };
 
 std::string timeNowToString();
-
 void add(int id, const std::string &description);
-
 void update(int id, const std::string &description);
-
 void deleteTask(int id);
-
 void markInProgress(int id);
-
 void markDone(int id);
-
 void list(const std::string &status);
+void startREPL(int nextId);
+void runCLICommand(const std::vector<std::string>& args, int& nextId);
 
-int main() {
+int main(int argc, char* argv[]) {
   int nextId;
-  std::ifstream in("data/tasks.json");
 
+  std::ifstream in("tasks.json");
   if (in.good()) {
     json tasks;
     in >> tasks;
+    in.close();
 
-    const json& last = tasks.back();
-    int prevId = last["id"];
-    nextId = prevId + 1;
+    if (!tasks.empty()) {
+      const json& last = tasks.back();
+      nextId = last["id"].get<int>() + 1;
+    } else {
+      nextId = 1;
+    }
   } else {
     nextId = 1;
-  }
-  in.close();
+  } 
 
-  std::string input;
-
-  std::cout << "Task CLI - type 'help' for available commands" << std::endl;
-  
-  while (true) {
-    std::cout << "task-cli>";
-    std::getline(std::cin, input);
-
-    if (input.empty()) continue;
-
-    std::istringstream iss(input);
-    std::string command;
-    iss >> command;
-
-    if (command == "exit" || command == "quit") {
-      break;
-    } else if (command == "help") {
-        std::cout << "Commands:\n"
-                  << "  add <description>            - Add a new task\n"
-                  << "  update <id> <description>    - Update task by id\n"
-                  << "  delete <id>                  - Delete task by id\n"
-                  << "  mark-in-progress <id>        - Mark task in-progress\n"
-                  << "  mark-done <id>               - Mark task done\n"
-                  << "  list                         - List all tasks\n"
-                  << "  list <status>                - List tasks by status (done/todo/in-progress)\n";
-    } else if (command == "add") {
-      std::string description;
-      std::getline(iss, description);
-      description.erase(0, description.find_first_not_of(" \t"));
-
-      add(nextId, description);
-      nextId++;  
-    } else if (command == "update") {
-      int inid;
-      std::string description;
-      iss >> inid;
-      std::getline(iss, description);
-      description.erase(0, description.find_first_not_of(" \t")); 
-
-      update(inid, description);
-    } else if (command == "delete") {
-      int inid;
-      iss >> inid;
-      deleteTask(inid);
-    } else if (command == "mark-in-progress") {
-      int inid;
-      iss >> inid;
-      
-      markInProgress(inid);
-    } else if (command == "mark-done") {
-      int inid;
-      iss >> inid;
-
-      markDone(inid);
-    } else if (command == "list") {
-      std::string status;
-      iss >> status;
-
-      list(status); 
-    } else {
-      std::cout << "Command not found" << std::endl;
-    }
+  if (argc > 1) {
+    std::vector<std::string> args(argv + 1, argv + argc);
+    runCLICommand(args, nextId);
+    return 0;
   }
 
+  // REPL mode
+  startREPL(nextId);
   return 0;
 }
 
@@ -125,8 +71,8 @@ std::string timeNowToString() {
 
 void add(int id, const std::string &description) {
   std::cout << "Adding task " << id << ": " << description << std::endl;
-  
-  std::ifstream in("data/tasks.json");
+   
+  std::ifstream in("tasks.json");
   json tasks;
 
   if (in.good()) {
@@ -145,7 +91,7 @@ void add(int id, const std::string &description) {
 
   tasks.push_back(newTask); 
 
-  std::ofstream out("data/tasks.json");
+  std::ofstream out("tasks.json");
   out << tasks.dump(4);
   out.close();
 }
@@ -153,7 +99,7 @@ void add(int id, const std::string &description) {
 void update(int id, const std::string &description) {
   std::cout << "Updating task " << id << " with: " << description << std::endl;
 
-  std::ifstream in("data/tasks.json");
+  std::ifstream in("tasks.json");
   json tasks;
 
   if (in.good()) {
@@ -174,7 +120,7 @@ void update(int id, const std::string &description) {
     }
   }
 
-  std::ofstream out("data/tasks.json");
+  std::ofstream out("tasks.json");
   out << tasks.dump(4);
   out.close();
 }
@@ -182,7 +128,7 @@ void update(int id, const std::string &description) {
 void deleteTask(int id) {
   std::cout << "Deleting task " << id << std::endl;
 
-  std::ifstream in("data/tasks.json");
+  std::ifstream in("tasks.json");
   json tasks;
 
   if (in.good()) {
@@ -201,7 +147,7 @@ void deleteTask(int id) {
     }
   }
 
-  std::ofstream out("data/tasks.json");
+  std::ofstream out("tasks.json");
   out << tasks.dump(4);
   out.close();
 }
@@ -209,7 +155,7 @@ void deleteTask(int id) {
 void markInProgress(int id) {
   std::cout << "Marking task " << id << " as in-progress" << std::endl;
 
-  std::ifstream in("data/tasks.json");
+  std::ifstream in("tasks.json");
   json tasks;
 
   if (in.good()) {
@@ -230,7 +176,7 @@ void markInProgress(int id) {
     }
   }
 
-  std::ofstream out("data/tasks.json");
+  std::ofstream out("tasks.json");
   out << tasks.dump(4);
   out.close();
 }
@@ -238,7 +184,7 @@ void markInProgress(int id) {
 void markDone(int id) {
   std::cout << "Marking task " << id << " as done" << std::endl;
 
-  std::ifstream in("data/tasks.json");
+  std::ifstream in("tasks.json");
   json tasks;
 
   if (in.good()) {
@@ -258,6 +204,10 @@ void markDone(int id) {
       task["updatedAt"] = timeNow;
     }
   }
+
+  std::ofstream out("tasks.json");
+  out << tasks.dump(4);
+  out.close();
 }
 
 void list(const std::string &status) {
@@ -267,7 +217,7 @@ void list(const std::string &status) {
     std::cout << "Listing all tasks" << std::endl;
   }
 
-  std::ifstream in("data/tasks.json");
+  std::ifstream in("tasks.json");
   json tasks;
 
   if (in.good()) {
@@ -318,5 +268,96 @@ void list(const std::string &status) {
       }
     }
   }
+}
 
+void runCLICommand(const std::vector<std::string>& args, int& nextId) {
+  const std::string& command = args[0];
+
+  if (command == "add") {
+    if (args.size() < 2) {
+      std::cerr << "Usage: task-cli add <description>" << std::endl;
+      return;
+    }
+
+    std::string description = args[1];
+    for (size_t i = 2; i < args.size(); ++i)
+      description += " " + args[i];
+
+    add(nextId++, description);
+  }
+  else if (command == "update") {
+    if (args.size() < 3) {
+      std::cerr << "Usage: task-cli update <id> <description>" << std::endl;
+      return;
+    }
+    int id = std::stoi(args[1]);
+    std::string description = args[2];
+    for (size_t i = 3; i < args.size(); ++i)
+      description += " " + args[i];
+    update(id, description);
+  }
+  else if (command == "delete") {
+    if (args.size() < 2) {
+      std::cerr << "Usage: task-cli delete <id>" << std::endl;
+      return;
+    }
+    deleteTask(std::stoi(args[1]));
+  }
+  else if (command == "mark-in-progress") {
+    if (args.size() < 2) {
+      std::cerr << "Usage: task-cli mark-in-progress <id>" << std::endl;
+      return;
+    }
+    markInProgress(std::stoi(args[1]));
+  }
+  else if (command == "mark-done") {
+    if (args.size() < 2) {
+      std::cerr << "Usage: task-cli mark-done <id>" << std::endl;
+      return;
+    }
+    markDone(std::stoi(args[1]));
+  }
+  else if (command == "list") {
+    if (args.size() == 1)
+      list("");
+    else
+      list(args[1]);
+  }
+  else if (command == "help") {
+    std::cout << "Commands:\n"
+              << "  add <description>            - Add a new task\n"
+              << "  update <id> <description>    - Update task by id\n"
+              << "  delete <id>                  - Delete task by id\n"
+              << "  mark-in-progress <id>        - Mark task in-progress\n"
+              << "  mark-done <id>               - Mark task done\n"
+              << "  list                         - List all tasks\n"
+              << "  list <status>                - List tasks by status (done/todo/in-progress)\n";
+  }
+  else {
+    std::cerr << "Unknown command: " << command << std::endl;
+  }
+}
+
+void startREPL(int nextId) {
+  std::string input;
+
+  std::cout << "Task CLI - type 'help' for available commands" << std::endl;
+
+  while (true) {
+    std::cout << "task-cli> ";
+    std::getline(std::cin, input);
+    if (input.empty()) continue;
+
+    std::istringstream iss(input);
+    std::vector<std::string> args;
+    std::string word;
+    while (iss >> word)
+      args.push_back(word);
+
+    if (args.empty()) continue;
+    if (args[0] == "exit" || args[0] == "quit")
+      break;
+
+    runCLICommand(args, nextId);
+  }
 }
