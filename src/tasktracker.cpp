@@ -11,14 +11,6 @@
 
 using json = nlohmann::json;
 
-struct Task {
-  int id;
-  std::string description;
-  std::string status;
-  std::string createdAt;
-  std::string updatedAt;
-};
-
 std::string timeNowToString();
 void add(int id, const std::string &description);
 void update(int id, const std::string &description);
